@@ -25,26 +25,10 @@ class LinebotController < ApplicationController
         when Line::Bot::Event::MessageType::Text
           # event.message['text']：ユーザーから送られたメッセージ
           input = event.message['text']
-          url  = "https://www.drk7.jp/weather/xml/13.xml"
-          xml  = open( url ).read.toutf8
-          doc = REXML::Document.new(xml)
-          xpath = 'weatherforecast/pref/area[4]/'
-          # 当日朝のメッセージの送信の下限値は20％としているが、明日・明後日雨が降るかどうかの下限値は30％としている
-          min_per = 30
           case input
             # 「明日」or「あした」というワードが含まれる場合
-          when /.*(明日|あした).*/
-            # info[2]：明日の天気
-            per06to12 = doc.elements[xpath + 'info[2]/rainfallchance/period[2]'].text
-            per12to18 = doc.elements[xpath + 'info[2]/rainfallchance/period[3]'].text
-            per18to24 = doc.elements[xpath + 'info[2]/rainfallchance/period[4]'].text
-            if per06to12.to_i >= min_per || per12to18.to_i >= min_per || per18to24.to_i >= min_per
-              push =
-                "明日の天気だよね。\n明日は雨が降りそうだよ(>_<)\n今のところ降水確率はこんな感じだよ。\n　  6〜12時　#{per06to12}％\n　12〜18時　 #{per12to18}％\n　18〜24時　#{per18to24}％\nまた明日の朝の最新の天気予報で雨が降りそうだったら教えるね！"
-            else
-              push =
-                "明日の天気？\n明日は雨が降らない予定だよ(^^)\nまた明日の朝の最新の天気予報で雨が降りそうだったら教えるね！"
-            end
+          when /.*(マルバツ|まるばつ).*/
+            client.reply_message(event['replyToken'], template)
           when /.*(明後日|あさって).*/
             per06to12 = doc.elements[xpath + 'info[3]/rainfallchance/period[2]l'].text
             per12to18 = doc.elements[xpath + 'info[3]/rainfallchance/period[3]l'].text
@@ -113,6 +97,31 @@ class LinebotController < ApplicationController
     @client ||= Line::Bot::Client.new { |config|
       config.channel_secret = ENV["LINE_CHANNEL_SECRET"]
       config.channel_token = ENV["LINE_CHANNEL_TOKEN"]
+    }
+  end
+
+  def template
+    {
+      "type": "template",
+      "altText": "this is a confirm template",
+      "template": {
+          "type": "confirm",
+          "text": "!a とはtrueの場合にfalse、falseの場合にtrueを返す論理演算子である",
+          "actions": [
+              {
+                "type": "message",
+                # Botから送られてきたメッセージに表示される文字列です。
+                "label": "マル",
+                # ボタンを押した時にBotに送られる文字列です。
+                "text": "マル"
+              },
+              {
+                "type": "message",
+                "label": "バツ",
+                "text": "バツ"
+              }
+          ]
+      }
     }
   end
 end
