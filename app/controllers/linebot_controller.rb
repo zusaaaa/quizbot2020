@@ -26,20 +26,14 @@ class LinebotController < ApplicationController
           # event.message['text']：ユーザーから送られたメッセージ
           input = event.message['text']
           case input
-            # 「明日」or「あした」というワードが含まれる場合
+            # 「マルバツ」or「まるばつ」というワードが含まれる場合
           when /.*(マルバツ|まるばつ).*/
             client.reply_message(event['replyToken'], template)
-          when /.*(明後日|あさって).*/
-            per06to12 = doc.elements[xpath + 'info[3]/rainfallchance/period[2]l'].text
-            per12to18 = doc.elements[xpath + 'info[3]/rainfallchance/period[3]l'].text
-            per18to24 = doc.elements[xpath + 'info[3]/rainfallchance/period[4]l'].text
-            if per06to12.to_i >= min_per || per12to18.to_i >= min_per || per18to24.to_i >= min_per
-              push =
-                "明後日の天気だよね。\n何かあるのかな？\n明後日は雨が降りそう…\n当日の朝に雨が降りそうだったら教えるからね！"
-            else
-              push =
-                "明後日の天気？\n気が早いねー！何かあるのかな。\n明後日は雨は降らない予定だよ(^^)\nまた当日の朝の最新の天気予報で雨が降りそうだったら教えるからね！"
-            end
+              if /.*(マル).*/
+                client.reply_message(event['replyToken'], answer_true)
+              else
+                client.reply_message(event['replyToken'], answer_false)
+              end
           when /.*(かわいい|可愛い|カワイイ|きれい|綺麗|キレイ|素敵|ステキ|すてき|面白い|おもしろい|ありがと|すごい|スゴイ|スゴい|好き|頑張|がんば|ガンバ).*/
             push =
               "ありがとう！！！\n優しい言葉をかけてくれるあなたはとても素敵です(^^)"
@@ -73,9 +67,10 @@ class LinebotController < ApplicationController
         end
         message = {
           type: 'text',
-          text: push
+          text: true_answer
         }
         client.reply_message(event['replyToken'], message)
+
         # LINEお友達追された場合（機能②）
       when Line::Bot::Event::Follow
         # 登録したユーザーのidをユーザーテーブルに格納
@@ -121,16 +116,24 @@ class LinebotController < ApplicationController
                 "text": "バツ"
               }
           ]
-          if ("text": "マル")
-            {
-            puts "正解です！よく勉強してらっしゃいますね！"
-            }
-          else ("text": "バツ")
-            {
-            puts "不正解です。!は問題の通りで、他には && や、||などがあります。\n思い出せない場合は、復習しましょう！"
-            }
-          end
       }
     }
   end
+
+  def answer_true
+    push_true = "正解です！お見事！！\n論理演算子には&&や||もあります。\n復習しておきましょう！"
+    message = {
+      type: 'text',
+      text: push_true 
+    }
+  end
+
+  def answer_false
+    push_false = "残念！不正解！"
+    message = {
+      type: 'text',
+      text: push_false 
+    }
+  end
+
 end
