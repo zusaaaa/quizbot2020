@@ -106,7 +106,7 @@ class LinebotController < ApplicationController
       "altText": "this is a confirm template",
       "template": {
           "type": "confirm",
-          "text": "!a とはtrueの場合にfalse、falseの場合にtrueを返す論理演算子である",
+          "text": "!aとはtrueの場合にfalse、falseの場合にtrueを返す論理演算子である",
           "actions": [
               {
                 "type": "message",
@@ -121,6 +121,15 @@ class LinebotController < ApplicationController
                 "text": "バツ"
               }
           ]
+          if ("text": "マル")
+            {
+            puts "正解です！よく勉強してらっしゃいますね！"
+            }
+          else ("text": "バツ")
+            {
+            puts "不正解です。!は問題の通りで、他には && や、||などがあります。\n思い出せない場合は、復習しましょう！"
+            }
+          end
       }
     }
   end
