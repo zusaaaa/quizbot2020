@@ -29,37 +29,12 @@ class LinebotController < ApplicationController
             # 「マルバツ」or「まるばつ」というワードが含まれる場合
           when /.*(マルバツ|まるばつ).*/
             client.reply_message(event['replyToken'], template)
-              if /.*(マル).*/
-                client.reply_message(event['replyToken'], answer_true)
-              else
-                client.reply_message(event['replyToken'], answer_false)
-              end
           when /.*(かわいい|可愛い|カワイイ|きれい|綺麗|キレイ|素敵|ステキ|すてき|面白い|おもしろい|ありがと|すごい|スゴイ|スゴい|好き|頑張|がんば|ガンバ).*/
             push =
               "ありがとう！！！\n優しい言葉をかけてくれるあなたはとても素敵です(^^)"
           when /.*(こんにちは|こんばんは|初めまして|はじめまして|おはよう).*/
             push =
               "こんにちは。\n声をかけてくれてありがとう\n今日があなたにとっていい日になりますように(^^)"
-          else
-            per06to12 = doc.elements[xpath + 'info/rainfallchance/period[2]l'].text
-            per12to18 = doc.elements[xpath + 'info/rainfallchance/period[3]l'].text
-            per18to24 = doc.elements[xpath + 'info/rainfallchance/period[4]l'].text
-            if per06to12.to_i >= min_per || per12to18.to_i >= min_per || per18to24.to_i >= min_per
-              word =
-                ["雨だけど元気出していこうね！",
-                 "雨に負けずファイト！！",
-                 "雨だけどああたの明るさでみんなを元気にしてあげて(^^)"].sample
-              push =
-                "今日の天気？\n今日は雨が降りそうだから傘があった方が安心だよ。\n　  6〜12時　#{per06to12}％\n　12〜18時　 #{per12to18}％\n　18〜24時　#{per18to24}％\n#{word}"
-            else
-              word =
-                ["天気もいいから一駅歩いてみるのはどう？(^^)",
-                 "今日会う人のいいところを見つけて是非その人に教えてあげて(^^)",
-                 "素晴らしい一日になりますように(^^)",
-                 "雨が降っちゃったらごめんね(><)"].sample
-              push =
-                "今日の天気？\n今日は雨は降らなさそうだよ。\n#{word}"
-            end
           end
           # テキスト以外（画像等）のメッセージが送られた場合
         else
@@ -67,9 +42,20 @@ class LinebotController < ApplicationController
         end
         message = {
           type: 'text',
-          text: true_answer
+          text: push
         }
         client.reply_message(event['replyToken'], message)
+
+        # ユーザーの回答に対しての正誤案内
+      when Line::Bot::Event::MessageType::Text
+        # event.message['text']：ユーザーから送られたメッセージ
+        answer = event.message['text']
+        case answer
+          # 「マルの場合」or「バツの場合」で返事を変える
+        when /.*(マル).*/
+          client.reply_message(event['replyToken'], answer_true)
+        when /.*(バツ).*/
+          client.reply_message(event['replyToken'], answer_false)
 
         # LINEお友達追された場合（機能②）
       when Line::Bot::Event::Follow
@@ -121,18 +107,18 @@ class LinebotController < ApplicationController
   end
 
   def answer_true
-    push_true = "正解です！お見事！！\n論理演算子には&&や||もあります。\n復習しておきましょう！"
-    message = {
+    answer =
+    {
       type: 'text',
-      text: push_true 
+      text: "正解です！お見事！！\n論理演算子には&&や||もあります。\n復習しておきましょう！"
     }
   end
 
   def answer_false
-    push_false = "残念！不正解！"
-    message = {
+    answer = 
+    {
       type: 'text',
-      text: push_false 
+      text: "残念！不正解！" 
     }
   end
 
