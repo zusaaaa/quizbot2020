@@ -47,15 +47,17 @@ class LinebotController < ApplicationController
         client.reply_message(event['replyToken'], message)
 
         # ユーザーの回答に対しての正誤案内
-      when Line::Bot::Event::MessageType::Text
-        # event.message['text']：ユーザーから送られたメッセージ
-        answer = event.message['text']
-        case answer
+        when Line::Bot::Event::MessageType::Text
+          # event.message['text']：ユーザーから送られたメッセージ
+          answer = event.message['text']
+          case answer
           # 「マルの場合」or「バツの場合」で返事を変える
-        when /.*(マル).*/
-          client.reply_message(event['replyToken'], answer_true)
-        when /.*(バツ).*/
+          when /.*(マル).*/
+            client.reply_message(event['replyToken'], answer_true)
+          when /.*(バツ).*/
           client.reply_message(event['replyToken'], answer_false)
+          
+          end
 
         # LINEお友達追された場合（機能②）
       when Line::Bot::Event::Follow
